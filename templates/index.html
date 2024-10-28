@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plant Health Classifier</title>
+</head>
+<body>
+<div class="container">
+<h1>Plant Health Classifier</h1>
+<label for="imageInput">Upload Image</label>
+<input type="file" id="imageInput" accept="image/*" onchange="previewImage()">
+<button onclick="uploadImage()">Classify Image</button>
+<img id="uploadedImage" src="" alt="Uploaded Image">
+<div id="result"></div>
+</div>
+<style>
+    /* Insert the CSS code here */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      border-left: 5px solid #007bff;
+    }
+
+    h1 {
+      color: #007bff;
+      font-size: 28px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 10px;
+    }
+
+    label {
+      font-size: 16px;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    input[type="file"] {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      width: 100%;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    #uploadedImage {
+      max-width: 100%;
+      height: auto;
+      margin-top: 15px;
+      border: 2px solid #007bff;
+      border-radius: 10px;
+      display: none;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #495057;
+    }
+
+    #result.error {
+      color: red;
+    }
+
+    #result.success {
+      color: green;
+    }
+  </style>
+<script>
+function previewImage() {
+const input = document.getElementById('imageInput');
+const file = input.files[0];
+const imagePreview = document.getElementById('uploadedImage');
+if (file) {
+const reader = new FileReader();
+reader.onload = function(e) {
+imagePreview.src = e.target.result;
+imagePreview.style.display = 'block';
+}
+reader.readAsDataURL(file);
+} else {
+imagePreview.style.display = 'none';
+}
+}
+function uploadImage() {
+const input = document.getElementById('imageInput');
+const file = input.files[0];
+if (!file) {
+alert('Please select an image!');
+return;
+}
+
+const formData = new FormData();
+formData.append('file', file);
+fetch('/classify', {
+method: 'POST',
+body: formData
+})
+.then(response => {
+if (!response.ok) {
+return response.text().then(errorText => {
+throw new Error('Server responded with error: ' + errorText);
+});
+}
+return response.json();
+})
+.then(data => {
+const resultDiv = document.getElementById('result');
+if (data.prediction === 0) {
+resultDiv.innerHTML = `Prediction: Healthy Plant, Confidence: ${data.confidence}`;
+} else {
+resultDiv.innerHTML = `Prediction: Diseased Plant, Confidence:
+
+${data.confidence}`;
+}
+})
+.catch(error => {
+console.error('Error:', error);
+const resultDiv = document.getElementById('result');
+resultDiv.innerHTML = `Error: ${error.message}`;
+});
+}
+</script>
+</body>
+</html>
